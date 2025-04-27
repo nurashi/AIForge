@@ -1,0 +1,29 @@
+
+app:
+  name: "auth-service"
+  env: "development" 
+  port: 8081
+
+google:
+  client_id: "" 
+  client_secret: "" 
+  redirect_url: "http://localhost:8081/auth/callback"
+
+postgres:
+  host: "postgres"
+  port: "5432"
+  user: "postgres" 
+  password: "" 
+  dbname: "aiforge" 
+  sslmode: "disable"
+
+redis:
+  host: "redis"
+  port: "6379"
+  password: ""
+  db: 0
+
+
+
+
+
