@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -8,10 +9,9 @@ import (
 	"github.com/nurashi/AIForge/auth-service/config"
 	"github.com/nurashi/AIForge/auth-service/database"
 	"github.com/nurashi/AIForge/auth-service/handlers"
-	"github.com/nurashi/AIForge/auth-service/oauth"
+	"github.com/nurashi/AIForge/auth-service/oauth" 
 	"github.com/nurashi/AIForge/auth-service/repository"
 	"github.com/nurashi/AIForge/auth-service/session"
-
 	app "github.com/nurashi/AIForge/auth-service/internal/app"
 )
 
@@ -21,25 +21,34 @@ func main() {
 		log.Fatalf("FATAL: Failed to load configuration: %v", err)
 	}
 
+	if cfg.Google.ClientID == "" || cfg.Google.ClientSecret == "" {
+		log.Fatalf("FATAL: GOOGLE_CLIENT_ID and/or GOOGLE_CLIENT_SECRET are not set")
+	}
+
 	dbPool, err := database.InitPostgres(&cfg.Postgres)
 	if err != nil {
-		log.Fatalf("FATAL: Failed to initialize PostgreSQL: %v", err)
+		log.Fatalf("FATAL: Failed to connect to PostgreSQL: %v", err)
 	}
 	defer dbPool.Close()
 
 	redisClient, err := database.InitRedis(&cfg.Redis)
 	if err != nil {
-		log.Fatalf("FATAL: Failed to initialize Redis: %v", err)
+		log.Fatalf("FATAL: Failed to connect to Redis: %v", err)
 	}
 
-	oauthConf := oauth.NewGoogleAuthConfig(&cfg.Google)
+	ctx := context.Background() 
+	oauthConf, err := oauth.NewGoogleOAuthConfig(ctx, &cfg.Google)
+	if err != nil {
+		log.Fatalf("FATAL: Failed to initialize OAuth/OIDC config: %v", err)
+	}
+
 	userRepo := repository.NewUserRepository(dbPool)
 	sessionMgr := session.NewSessionManager(redisClient)
 
 	appInstance := &app.App{
 		DB:             dbPool,
 		Redis:          redisClient,
-		OAuthConfig:    oauthConf,
+		OAuthConfig:    oauthConf, 
 		UserRepo:       userRepo,
 		SessionManager: sessionMgr,
 	}
@@ -47,12 +56,11 @@ func main() {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "General endpoint works. Use /auth/login to use Google OAuth")
+		fmt.Fprintf(w, "general endpoint is works, Use -> /auth/login to use Google OAuth")
 	})
-	
-	// Assuming you've updated your handlers to be consistent
 	mux.HandleFunc("/auth/login", handlers.OAuthLoginHandler(appInstance.OAuthConfig))
 	mux.HandleFunc("/auth/callback", handlers.OAuthCallbackHandler(appInstance))
+	mux.HandleFunc("/auth/logout", handlers.LogoutHandler(appInstance))
 
 	addr := fmt.Sprintf(":%d", cfg.App.Port)
 	log.Printf("Server starting on %s", addr)

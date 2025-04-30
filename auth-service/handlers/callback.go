@@ -2,14 +2,13 @@ package handlers
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/nurashi/AIForge/auth-service/models"
-	app "github.com/nurashi/AIForge/auth-service/internal/app" 
+	app "github.com/nurashi/AIForge/auth-service/internal/app"
 )
 
 func OAuthCallbackHandler(appInstance *app.App) http.HandlerFunc {
@@ -44,26 +43,28 @@ func OAuthCallbackHandler(appInstance *app.App) http.HandlerFunc {
 			return
 		}
 
-		userDataBytes, token, err := appInstance.OAuthConfig.GetUserDataFromGoogle(ctx, code)
+		//Exchange code for token
+		token, err := appInstance.OAuthConfig.ExchangeCodeForToken(ctx, code) 
 		if err != nil {
-			log.Printf("ERROR-get-user-data: %v", err)
-			http.Error(w, "ERROR-get-user-data", http.StatusInternalServerError)
+			log.Printf("ERROR-exchange-code: %v", err)
+			http.Error(w, "ERROR-exchange-code", http.StatusInternalServerError)
 			return
 		}
 
-		var userInfo models.GoogleUserInfo
-		err = json.Unmarshal(userDataBytes, &userInfo)
+		userInfo, err := appInstance.OAuthConfig.VerifyIDTokenAndExtractUserInfo(ctx, token)
 		if err != nil {
-			log.Printf("ERROR-parse-user-json: %v", err)
-			http.Error(w, "ERROR-parse-user-json", http.StatusInternalServerError)
+			log.Printf("ERROR-verify-id-token: %v", err)
+			http.Error(w, "ERROR-invalid-token", http.StatusUnauthorized)
 			return
 		}
+		log.Printf("ID Token Validated - STATUS OK: Email=%s, GoogleID=%s", userInfo.Email, userInfo.Sub)
 
+		// Find or Create User (uses validated userInfo)
 		var appUser *models.User
 		foundUser, err := appInstance.UserRepo.FindUserByGoogleID(ctx, userInfo.Sub)
 		if err != nil {
 			if errors.Is(err, pgx.ErrNoRows) {
-				createdUser, createErr := appInstance.UserRepo.CreateUser(ctx, &userInfo)
+				createdUser, createErr := appInstance.UserRepo.CreateUser(ctx, userInfo) 
 				if createErr != nil {
 					log.Printf("ERROR-create-user: %v", createErr)
 					http.Error(w, "ERROR-create-user", http.StatusInternalServerError)
@@ -79,17 +80,14 @@ func OAuthCallbackHandler(appInstance *app.App) http.HandlerFunc {
 			appUser = foundUser
 		}
 
+		// Create Session
 		_, err = appInstance.SessionManager.CreateSession(ctx, w, appUser.ID)
 		if err != nil {
 			log.Printf("ERROR-create-session: %v", err)
 		}
 
-
-		if token.RefreshToken != "" {
-			log.Printf("refresh token")
-		}
-
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK - Session Created"))
+		// Redirect
+		redirectTarget := "/"
+		http.Redirect(w, r, redirectTarget, http.StatusSeeOther)
 	}
 }
