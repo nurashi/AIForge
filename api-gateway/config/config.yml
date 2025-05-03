@@ -1,0 +1,21 @@
+# Этот файл содержит значения по умолчанию
+# Реальные значения будут браться из переменных окружения (.env)
+# или docker-compose.yml, если они там определены, или же нету 
+
+app:
+  name: "api-gateway"
+  env: development 
+  port: 8080 
+
+services:
+  auth: http://auth-service:8081 
+
+redis: 
+  host: redis 
+  port: 6379
+  password: ""
+  db: 0
+
+# services:
+#   user: http://user-service:8083
+#   ai: http://ai-service:8082
