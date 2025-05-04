@@ -7,12 +7,12 @@ app:
 google:
   client_id: "" 
   client_secret: "" 
-  redirect_url: "http://localhost:8081/auth/callback"
+  redirect_url: ""
 
 postgres:
   host: "postgres"
   port: "5432"
-  user: "postgres" 
+  user: "postgres"  
   password: "" 
   dbname: "aiforge" 
   sslmode: "disable"

@@ -17,6 +17,8 @@ import (
 
 func main() {
 	cfg, err := config.LoadConfig()
+	log.Printf("DEBUG: Loaded Config - RedirectURL: [%s]", cfg.Google.RedirectURL)
+
 	if err != nil {
 		log.Fatalf("FATAL: Failed to load configuration: %v", err)
 	}

@@ -12,7 +12,7 @@ func SetupRoutes(router *gin.Engine, cfg *config.Config) {
 	})
 
     router.GET("/", func(c *gin.Context) {
-        c.JSON(200, gin.H{"message": "Welcome to AIForge API Gateway"})
+        c.JSON(200, gin.H{"message": "Welcome to AIForge API Gateway (c) Nurasyl Orazbek's first API_GATEWAY"})
     })
 
 	authGroup := router.Group("/auth")

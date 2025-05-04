@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"strings"
 	"log"
 
 	"github.com/spf13/viper"
@@ -44,12 +43,30 @@ type RedisConfig struct {
 }
 
 func LoadConfig() (*Config, error) {
-	viper.SetConfigName("config")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath("./config") 
-	viper.AddConfigPath(".")        
-	viper.AutomaticEnv()
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	viper.BindEnv("google.client_id", "GOOGLE_CLIENT_ID")
+    viper.BindEnv("google.client_secret", "GOOGLE_CLIENT_SECRET")
+    viper.BindEnv("google.redirect_url", "REDIRECT_URL")
+    viper.BindEnv("postgres.user", "POSTGRES_USER")
+    viper.BindEnv("postgres.password", "POSTGRES_PASSWORD")
+    viper.BindEnv("postgres.dbname", "POSTGRES_DB")
+    viper.BindEnv("postgres.host", "POSTGRES_HOST")
+    viper.BindEnv("postgres.port", "POSTGRES_PORT") 
+    viper.BindEnv("postgres.sslmode", "POSTGRES_SSLMODE") 
+    viper.BindEnv("redis.password", "REDIS_PASSWORD")
+    viper.BindEnv("redis.host", "REDIS_HOST")       
+    viper.BindEnv("redis.port", "REDIS_PORT")       
+    viper.BindEnv("redis.db", "REDIS_DB")        
+    viper.BindEnv("app.env", "APP_ENV")
+    viper.BindEnv("app.port", "APP_PORT")         
+
+
+	viper.SetDefault("postgres.host", "postgres")
+	viper.SetDefault("postgres.port", "5432")
+	viper.SetDefault("postgres.sslmode", "disable")
+	viper.SetDefault("redis.host", "redis")
+	viper.SetDefault("redis.port", "6379")
+	viper.SetDefault("redis.db", 0)
+	viper.SetDefault("app.port", 8081)
 
 	err := viper.ReadInConfig()
 	if err != nil {
@@ -71,6 +88,7 @@ func LoadConfig() (*Config, error) {
 	if config.Google.ClientSecret == "" {
 		log.Println("Warning: GOOGLE_CLIENT_SECRET is not set.")
 	}
+	log.Printf("DEBUG: Config - Postgres Host: [%s]", config.Postgres.Host)
 
 	return &config, nil
 }

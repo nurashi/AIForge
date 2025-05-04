@@ -8,6 +8,8 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/nurashi/AIForge/auth-service/models"
+
+	
 	app "github.com/nurashi/AIForge/auth-service/internal/app"
 )
 
@@ -78,7 +80,7 @@ func OAuthCallbackHandler(appInstance *app.App) http.HandlerFunc {
 			} else {
 				log.Printf("ERROR-find-user: %v", err)
 				http.Error(w, "ERROR-find-user", http.StatusInternalServerError)
-				return
+				return 
 			}
 		} else {
 			appUser = foundUser

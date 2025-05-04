@@ -22,6 +22,7 @@ type GoogleOAuthConfig struct {
 	Provider *oidc.Provider        
 }
 
+
 func NewGoogleOAuthConfig(ctx context.Context, cfg *config.GoogleConfig) (*GoogleOAuthConfig, error) {
 	provider, err := oidc.NewProvider(ctx, "https://accounts.google.com")
 	if err != nil {
@@ -35,7 +36,7 @@ func NewGoogleOAuthConfig(ctx context.Context, cfg *config.GoogleConfig) (*Googl
 		ClientSecret: cfg.ClientSecret,
 		RedirectURL:  cfg.RedirectURL,
 		Scopes: []string{
-			oidc.ScopeOpenID, 
+			oidc.ScopeOpenID,  
 			"profile",        
 			"email",          
 		},
@@ -57,6 +58,7 @@ func GenerateStateOauthCookie(w http.ResponseWriter) string {
 		fmt.Println("Error generating random bytes for state:", err)
 		return ""
 	}
+	
 	state := base64.URLEncoding.EncodeToString(b)
 	cookie := &http.Cookie{
 		Name:     "oauthstate",

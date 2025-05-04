@@ -1,18 +1,31 @@
 services:
+  api-gateway: 
+    build: ./api-gateway 
+    ports:
+      - "8080:8080" 
+    depends_on:
+      auth-service:
+        condition: service_started 
+      redis: 
+        condition: service_healthy
+    environment:
+      - APP_ENV=${APP_ENV:-development}
+      - AUTH_SERVICE_URL=${AUTH_SERVICE_URL:-http://auth-service:8080}
+      - REDIS_HOST=${REDIS_HOST:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+
   auth-service:
     build: ./auth-service
-    ports:
-      - "8081:8081"
     depends_on:
-
       postgres:
-        condition: service_healthy 
+        condition: service_healthy
       redis:
         condition: service_healthy
     environment:
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-      - REDIRECT_URL=${REDIRECT_URL}
+      - REDIRECT_URL=${REDIRECT_URL} 
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
       - POSTGRES_USER=${POSTGRES_USER}
@@ -26,7 +39,7 @@ services:
   postgres:
     image: postgres:16
     ports:
-      - "5434:5432"
+      - "5434:5432" 
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
