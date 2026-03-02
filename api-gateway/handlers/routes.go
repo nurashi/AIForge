@@ -11,9 +11,9 @@ func SetupRoutes(router *gin.Engine, cfg *config.Config) {
 		c.JSON(200, gin.H{"message": "pong from gateway"})
 	})
 
-    router.GET("/", func(c *gin.Context) {
-        c.JSON(200, gin.H{"message": "Welcome to AIForge API Gateway (c) Nurasyl Orazbek's first API_GATEWAY"})
-    })
+	router.GET("/", func(c *gin.Context) {
+		c.JSON(200, gin.H{"message": "Welcome to AIForge API Gateway (c) Nurasyl Orazbek's first API_GATEWAY"})
+	})
 
 	authGroup := router.Group("/auth")
 	{
@@ -23,4 +23,12 @@ func SetupRoutes(router *gin.Engine, cfg *config.Config) {
 		authGroup.GET("/logout", gin.WrapH(authProxy))
 	}
 
+	userGroup := router.Group("/user")
+	{
+		userProxy := NewReverseProxy(cfg.Services.User)
+		userGroup.GET("/profile", gin.WrapH(userProxy))
+		userGroup.PUT("/profile", gin.WrapH(userProxy))
+		userGroup.POST("/profile/avatar", gin.WrapH(userProxy))
+		userGroup.DELETE("/profile/avatar", gin.WrapH(userProxy))
+	}
 }

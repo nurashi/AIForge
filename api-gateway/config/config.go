@@ -9,9 +9,9 @@ import (
 )
 
 type Config struct {
-	App      AppConfig      `mapstructure:"app"`
-	Services ServiceConfig  `mapstructure:"services"`
-	Redis    RedisConfig    `mapstructure:"redis"`
+	App      AppConfig     `mapstructure:"app"`
+	Services ServiceConfig `mapstructure:"services"`
+	Redis    RedisConfig   `mapstructure:"redis"`
 }
 
 type AppConfig struct {
@@ -22,6 +22,7 @@ type AppConfig struct {
 
 type ServiceConfig struct {
 	Auth string `mapstructure:"auth"`
+	User string `mapstructure:"user"`
 }
 
 type RedisConfig struct {
@@ -44,6 +45,7 @@ func LoadConfig() (*Config, error) {
 	viper.SetDefault("app.env", "development")
 	viper.SetDefault("app.port", 8080)
 	viper.SetDefault("services.auth", "http://auth-service:8081")
+	viper.SetDefault("services.user", "http://user-service:8083")
 	viper.SetDefault("redis.host", "redis")
 	viper.SetDefault("redis.port", "6379")
 	viper.SetDefault("redis.password", "")
